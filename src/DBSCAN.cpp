@@ -2,9 +2,12 @@
 
 #include <algorithm>
 #include <cmath>
+#include <iostream>
+
+namespace Cluster {
 
 DBSCAN::DBSCAN(unsigned int pts, float dist) : pts(pts) {
-  this->squareSize = dist * std::sqrt(2);
+  this->squareSize = dist / std::sqrt(2);
 }
 
 void DBSCAN::constructGrid(const std::vector<Point> &points) {
@@ -24,22 +27,24 @@ void DBSCAN::constructGrid(const std::vector<Point> &points) {
       max.y = p.y;
   }
   this->gridWidth = (max.x - min.x) / this->squareSize + 1;
-  this->gridWidth = (max.y - min.y) / this->squareSize + 1;
-  this->cells.reserve(this->gridHeight);
+  this->gridHeight = (max.y - min.y) / this->squareSize + 1;
+  this->cells.resize(this->gridHeight);
   for (auto &cell : this->cells)
-    cell.reserve(this->gridWidth);
+    cell.resize(this->gridWidth);
   for (const auto &p : points) {
     this->cells[(p.y - min.y) / this->squareSize]
                [(p.x - min.x) / this->squareSize]
                    .points.push_back(p);
   }
   for (auto &cellY : this->cells) {
+    x = 0;
     for (auto &cellX : cellY) {
       cellX.x = x;
       cellX.y = y;
       cellX.isCore = (cellX.points.size() >= this->pts);
-      if (!cellX.points.empty())
+      if (!cellX.points.empty()) {
         this->filledCells.emplace_back(cellX);
+      }
       ++x;
     }
     ++y;
@@ -53,7 +58,7 @@ void DBSCAN::expandCluster(std::vector<Point> &cluster, const Cell &cell) {
     int idX = cell.x + pos[i][0];
     int idY = cell.y + pos[i][1];
 
-    if (idX > this->gridWidth || idX < 0 || idY > this->gridHeight || idY < 0)
+    if (idX >= this->gridWidth || idX < 0 || idY >= this->gridHeight || idY < 0)
       continue; // Out of bound
     Cell &nextCell = this->cells[idY][idX];
 
@@ -75,7 +80,7 @@ void DBSCAN::reachCluster(Cell &cell) {
     int idX = cell.x + pos[i][0];
     int idY = cell.y + pos[i][1];
 
-    if (idX > this->gridWidth || idX < 0 || idY > this->gridHeight || idY < 0)
+    if (idX >= this->gridWidth || idX < 0 || idY >= this->gridHeight || idY < 0)
       continue; // Out of bound
     Cell &nextCell = this->cells[idY][idX];
 
@@ -104,9 +109,10 @@ void DBSCAN::reachCluster(Cell &cell) {
 
 void DBSCAN::constructClusters() {
   for (auto &refCell : this->filledCells) {
-    auto cell = refCell.get();
+    auto &cell = refCell.get();
 
-    if (cell.isCore) {
+    if (cell.isCore) { // pass a var to merge my core cell if it is not yet in a
+                       // cluster into the newly(future) found cluster
       if (cell.clusterId == -1) {
         this->clusters.push_back(cell.points);
         cell.clusterId = this->clusters.size() - 1;
@@ -123,6 +129,17 @@ void DBSCAN::constructClusters() {
 }
 
 void DBSCAN::cluster(const std::vector<Point> &points) {
+  this->clusters.clear();
+  this->noise.clear();
+  this->cells.clear();
+  this->filledCells.clear();
   constructGrid(points);
   constructClusters();
+}
+
+const std::vector<Point> &DBSCAN::getNoise() const { return this->noise; }
+
+const std::vector<std::vector<Point>> &DBSCAN::getClusters() const {
+  return this->clusters;
+}
 }

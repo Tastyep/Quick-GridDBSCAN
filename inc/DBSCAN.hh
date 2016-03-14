@@ -4,9 +4,13 @@
 #include <functional>
 #include <vector>
 
+namespace Cluster {
+
 struct Point {
   int x;
   int y;
+
+  Point(int x, int y) : x(x), y(y) {}
 };
 
 struct Cell {
@@ -14,7 +18,9 @@ struct Cell {
   int x;
   int y;
   bool isCore;
-  int clusterId = -1;
+  int clusterId;
+
+  Cell() : clusterId(-1) {}
 };
 
 class DBSCAN {
@@ -28,8 +34,8 @@ public:
   DBSCAN &operator=(DBSCAN &&other) = default;
 
   void cluster(const std::vector<Point> &points);
-  std::vector<std::vector<Point>> &getClusters() const;
-  std::vector<Point> &getNoise() const;
+  const std::vector<std::vector<Point>> &getClusters() const;
+  const std::vector<Point> &getNoise() const;
 
 private:
   void constructGrid(const std::vector<Point> &points);
@@ -47,5 +53,6 @@ private:
   int gridWidth;
   int gridHeight;
 };
+}
 
 #endif /* end of include guard: DBSCAN_HH_ */
