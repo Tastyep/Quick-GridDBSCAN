@@ -40,13 +40,17 @@ public:
 private:
   void constructGrid(const std::vector<Point> &points);
   void constructClusters();
-  void expandCluster(std::vector<Point> &cluster, const Cell &cell);
+  void expandCluster(std::vector<std::reference_wrapper<Cell>> &cluster,
+                     const Cell &cell, bool newCluster);
   void reachCluster(Cell &cell);
+  void simplifyClusters();
 
 private:
   unsigned int pts;
   float squareSize;
-  std::vector<std::vector<Point>> clusters;
+  std::vector<std::vector<std::reference_wrapper<Cell>>> clusters;
+  std::vector<int> toDelete;
+  std::vector<std::vector<Point>> sclusters;
   std::vector<Point> noise;
   std::vector<std::vector<Cell>> cells;
   std::vector<std::reference_wrapper<Cell>> filledCells;

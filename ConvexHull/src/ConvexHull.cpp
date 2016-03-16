@@ -21,6 +21,7 @@ const std::vector<Point> &ConvexHull::getHull() const { return this->hull; }
 const std::vector<Point> &ConvexHull::computeHull() {
   this->hull.clear();
 
+  std::cout << "Nb points: " << this->points.size() << "\n";
   // Build lower hull
   std::vector<Point> lowerHull;
   for (const auto &p : this->points) {
@@ -47,6 +48,7 @@ const std::vector<Point> &ConvexHull::computeHull() {
   }
 
   lowerHull.pop_back(); // Already contained in the other hull
+  std::cout << "lowerHull Size: " << lowerHull.size() << "\n";
   this->hull = lowerHull;
   this->hull.insert(this->hull.end(), upperHull.begin(), upperHull.end());
   return this->hull;
